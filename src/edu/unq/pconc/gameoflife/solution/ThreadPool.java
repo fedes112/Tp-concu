@@ -1,10 +1,14 @@
 package edu.unq.pconc.gameoflife.solution;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ThreadPool {
 
 	private int cantidadDeWorkers = 0;
 	private BufferDeTareas buff;
 	private BufferDeFin buffDeFin;
+	private List<Worker> trabajadores = new ArrayList<Worker>();
 	
 	public ThreadPool(BufferDeTareas buffer,BufferDeFin bufferDeFin) {
 		this.buff = buffer;

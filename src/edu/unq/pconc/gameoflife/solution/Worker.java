@@ -29,29 +29,42 @@ public class Worker extends Thread {
 
 	private void realizarTarea() {
 		for(int i = 0;i < this.tarea.getCantidadDeCeldas();i++) {
+			System.out.println("celda verificar "+i);
 			vecinos = 0;
-			this.mirarVecino(tarea.columnaActual() , tarea.filaActual() +1);
-			this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() +1);
-			this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() );
-			this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() -1);
-			this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() +1);
-			this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() );
-			this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() -1);
-			this.mirarVecino(tarea.columnaActual() , tarea.filaActual() -1);
-			if ( vecinos != 3 && vecinos != 2 ) {
+			this.mirarVecinos();
+			if ( puedeMorir() ) {
 				tarea.setCell( tarea.columnaActual(),tarea.filaActual(), false);
 		    }
-			if ( vecinos == 3 ) {
+			if ( puedeRevivir() ) {
 				tarea.setCell( tarea.columnaActual(),tarea.filaActual(), true );
 			}
 			this.tarea.siguienteCelda();
 		}
 	}
 	
-	private void mirarVecino(int columnaActual, int filaActual) {
+	private boolean puedeRevivir() {
+		return vecinos == 3;
+	}
+	
+	private boolean puedeMorir() {
+		return vecinos != 3 && vecinos != 2;
+	}
+
+	private void mirarVecinos() {
+		this.mirarVecino(tarea.columnaActual() , tarea.filaActual() +1);
+		this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() );
+		this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() +1);
+		this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() -1);
+		this.mirarVecino(tarea.columnaActual() , tarea.filaActual() -1);
+		this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() );
+		this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() +1);
+		this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() -1);
+	}
+	
+	private synchronized void mirarVecino(int columnaActual, int filaActual) {
 		 if(this.tarea.getCell(columnaActual, filaActual)) {
 			 vecinos++;
-		 };
+		 }
 	}
 	
 }

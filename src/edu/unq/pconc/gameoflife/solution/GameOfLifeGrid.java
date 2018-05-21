@@ -21,13 +21,6 @@ public class GameOfLifeGrid implements CellGrid {
   private Celda[][] tableroActualizado;
   private Celda[][] tablero;
   
-
-  /**
-   * Contructs a GameOfLifeGrid.
-   * 
-   * @param cellCols number of columns
-   * @param cellRows number of rows
-   */
   public GameOfLifeGrid() {
     this.celdasColumnas = 0;
     this.celdasFilas = 0;
@@ -42,15 +35,17 @@ public class GameOfLifeGrid implements CellGrid {
 
   public void clear() {
     generations = 0;
-    for ( int c=0; c<celdasColumnas; c++) {
-        for ( int r=0; r<celdasFilas; r++ ) {
-          tablero[c][r] = new Celda( c, r );
-          tableroActualizado[c][r] = new Celda( c, r );;
+    for ( int c=0; c< celdasColumnas; c++) {
+    	for ( int r=0; r< celdasFilas; r++ ) {
+        	tablero[c][r] = new Celda( c, r );
+        	tableroActualizado[c][r] = new Celda( c, r );;
         }
       }
   }
   
   public synchronized void next() {
+	  System.out.println("threads"+Worker.activeCount());
+	  this.divisionGrillaThreads();
 	  System.out.println("primera Tarea "+1);
 	  for(Tarea tarea : this.listaDeTareas) {
 		  this.buffer.dejarTarea(tarea);
@@ -61,18 +56,24 @@ public class GameOfLifeGrid implements CellGrid {
 	  }
 	  System.out.println("Tercera Tarea"+3);
 	  this.generations++;
+	  System.out.println("Actualize tablero");
 	  this.tablero = this.tableroActualizado;
   }
   
   public void actualizarCelda(int columna, int fila,boolean estado) {
+	  System.out.println("Actualize celda");
 	  tableroActualizado[columna][fila].setearEstado(estado);
   }
 
   public boolean getCell( int columna, int fila ) {
+	  System.out.print("pide celda");
+	  System.out.print(columna+" ");
+	  System.out.println(fila);
       return (tablero[columna][fila]).estado();  
   }
 
-  public void setCell( int columna, int fila, boolean estado ) {
+  public synchronized void setCell( int columna, int fila, boolean estado ) {
+	  System.out.println("esto no se imprime");
       tablero[columna][fila].setearEstado(estado);
   }
   
@@ -89,40 +90,45 @@ public class GameOfLifeGrid implements CellGrid {
     if ( celdasColumnas==celdasColumnasNew && celdasFilas==celdasFilasNew )
       return; 
     Celda[][] tableroNueva = new Celda[celdasColumnasNew][celdasFilasNew];
-    for ( int c=0; c<celdasColumnasNew; c++)
-      for ( int r=0; r<celdasFilasNew; r++ )
+    for ( int c=0; c<celdasColumnasNew; c++) {
+      for ( int r=0; r<celdasFilasNew; r++ ) {
         if ( c < celdasColumnas && r < celdasFilas ) {
         	tableroNueva[c][r] = this.tablero[c][r];
   		}else {
   			tableroNueva[c][r] = new Celda( c, r );
-        }
+        }   
+      }
+    }
     this.tablero = tableroNueva;
-    this.tableroActualizado = tablero;
+    this.tableroActualizado = tableroNueva;
     this.celdasColumnas = celdasColumnasNew;
     this.celdasFilas = celdasFilasNew;
     this.divisionGrillaThreads();
+    System.out.println("cantidad de Celdas"+cantidadDeCeldas());
+    System.out.println("cantidad de columnas"+celdasColumnas);
+    System.out.println("cantidad de filas"+celdasFilas);
   }
   
   public void divisionGrillaThreads() {
 	  List<Tarea> tareasNuevas= new ArrayList<Tarea>();
 	  int columnaInicio = 0;
 	  int filaInicio = 0;
-	  int celdasParaThreads = 0;
+	  int celdasParaThreads = this.cantidadDeCeldas();
 	  for(int i = 0;i < this.threadPool.getCantidadDeWorkers();i++) {
 		  celdasParaThreads = (this.cantidadDeCeldas()/(this.threadPool.getCantidadDeWorkers()));
 		  if(i < (cantidadDeCeldas()%this.threadPool.getCantidadDeWorkers())) {
 			  celdasParaThreads++;
 		  }
-		  System.out.println("resultado da "+celdasParaThreads);
-		  tareasNuevas.add(new Tarea(columnaInicio,filaInicio,celdasParaThreads,this));
+		  
+		  Tarea tareaNew = new Tarea(columnaInicio,filaInicio,celdasParaThreads,this);
+		  tareasNuevas.add(tareaNew);
 		  while(celdasParaThreads > celdasColumnas) {
 			  filaInicio++;
-			  celdasParaThreads =- celdasColumnas;
+			  celdasParaThreads -= celdasColumnas;
 		  }
 		  columnaInicio = celdasParaThreads;
 	  }
 	  this.listaDeTareas = tareasNuevas;
-	  System.out.println("cantidad De Tareas "+listaDeTareas.size());
   }
   
   

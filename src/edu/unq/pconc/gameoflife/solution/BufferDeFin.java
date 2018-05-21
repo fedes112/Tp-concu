@@ -9,16 +9,18 @@ public class BufferDeFin {
 	public synchronized void tomarTarea() {
 		while (unNumero == 0){
 			try {
+				System.out.println("estoy esperando");
 				wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 		unNumero--;
-		notifyAll();
+		System.out.println("deje de esperar");
 	}
 	
 	public synchronized void dejarTarea() {
+		System.out.println("deje una tarea");
 		unNumero++;
 		notifyAll();
 	}

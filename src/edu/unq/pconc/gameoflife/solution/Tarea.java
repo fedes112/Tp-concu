@@ -26,20 +26,19 @@ public class Tarea {
 	}
 
 	public void siguienteCelda() {
-		if(columnaDeCeldaAModificar == gameOfLifeGrid.celdasEnColumna()) {
+		if((columnaDeCeldaAModificar+1) < gameOfLifeGrid.celdasEnColumna()) {
+			this.columnaDeCeldaAModificar++;
+		}else {
 			this.columnaDeCeldaAModificar = 0;
 			this.filaDeCeldaAModificar++;
-		}else {
-			this.columnaDeCeldaAModificar++;
 		}
 	}
 	
 	public boolean getCell( int columna, int fila ) {
-		if((columna >= 0 && fila >= 0 )&&(columna <= this.gameOfLifeGrid.celdasEnColumna() && fila <= this.gameOfLifeGrid.celdasEnFila())) {
-			return gameOfLifeGrid.getCell(columna, fila); 
-		}else {
-			return false;
-		}
+		if(columna >= 0 && fila >= 0 && columna < gameOfLifeGrid.celdasEnColumna() && fila < gameOfLifeGrid.celdasEnFila()) {
+			return gameOfLifeGrid.getCell(columna, fila);
+		}else return false;
+		
 	}
 	
 	public void setCell( int columna, int fila ,boolean estado) {
