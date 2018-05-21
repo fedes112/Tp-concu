@@ -26,7 +26,7 @@ public class Tarea {
 	}
 
 	public void siguienteCelda() {
-		if(columnaDeCeldaAModificar >= gameOfLifeGrid.celdasEnColumna()) {
+		if(columnaDeCeldaAModificar == gameOfLifeGrid.celdasEnColumna()) {
 			this.columnaDeCeldaAModificar = 0;
 			this.filaDeCeldaAModificar++;
 		}else {
@@ -35,7 +35,11 @@ public class Tarea {
 	}
 	
 	public boolean getCell( int columna, int fila ) {
-	    return gameOfLifeGrid.getCell(columna, fila); 
+		if((columna >= 0 && fila >= 0 )&&(columna <= this.gameOfLifeGrid.celdasEnColumna() && fila <= this.gameOfLifeGrid.celdasEnFila())) {
+			return gameOfLifeGrid.getCell(columna, fila); 
+		}else {
+			return false;
+		}
 	}
 	
 	public void setCell( int columna, int fila ,boolean estado) {

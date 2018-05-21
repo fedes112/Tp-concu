@@ -4,21 +4,22 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class BufferDeFin {
-	private Queue<Integer> cola = new LinkedList<>();
+	private int unNumero = 0;
 		
 	public synchronized void tomarTarea() {
-		while (this.cola.isEmpty()){
+		while (unNumero == 0){
 			try {
 				wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+		unNumero--;
 		notifyAll();
 	}
 	
-	public synchronized void dejarTarea(Integer unNumero) {
-		this.cola.add(unNumero);
+	public synchronized void dejarTarea() {
+		unNumero++;
 		notifyAll();
 	}
 	

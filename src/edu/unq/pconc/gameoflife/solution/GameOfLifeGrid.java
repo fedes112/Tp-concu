@@ -37,45 +37,42 @@ public class GameOfLifeGrid implements CellGrid {
     this.listaDeTareas = new ArrayList<Tarea>();
     tableroActualizado = new Celda[celdasColumnas][celdasFilas];
     tablero = new Celda[celdasColumnas][celdasFilas];
-    for ( int c=0; c<celdasColumnas; c++) {
-      for ( int r=0; r<celdasFilas; r++ ) {
-        tablero[c][r] = new Celda( c, r );
-        tableroActualizado[c][r] = new Celda( c, r );
-      }
-    }
+    this.clear();
   }
 
-  public synchronized void clear() {
+  public void clear() {
     generations = 0;
     for ( int c=0; c<celdasColumnas; c++) {
         for ( int r=0; r<celdasFilas; r++ ) {
           tablero[c][r] = new Celda( c, r );
+          tableroActualizado[c][r] = new Celda( c, r );;
         }
       }
   }
   
   public synchronized void next() {
-	  
+	  System.out.println("primera Tarea "+1);
 	  for(Tarea tarea : this.listaDeTareas) {
 		  this.buffer.dejarTarea(tarea);
 	  }
-	  
+	  System.out.println("segunda Tarea "+2);
 	  for(int i = 0;i < this.threadPool.getCantidadDeWorkers();i++) {
 		  this.bufferMutex.tomarTarea();
 	  }
-	  
+	  System.out.println("Tercera Tarea"+3);
+	  this.generations++;
 	  this.tablero = this.tableroActualizado;
   }
   
-  public synchronized void actualizarCelda(int columna, int fila,boolean estado) {
+  public void actualizarCelda(int columna, int fila,boolean estado) {
 	  tableroActualizado[columna][fila].setearEstado(estado);
   }
 
-  public synchronized boolean getCell( int columna, int fila ) {
+  public boolean getCell( int columna, int fila ) {
       return (tablero[columna][fila]).estado();  
   }
 
-  public synchronized void setCell( int columna, int fila, boolean estado ) {
+  public void setCell( int columna, int fila, boolean estado ) {
       tablero[columna][fila].setearEstado(estado);
   }
   
@@ -100,6 +97,7 @@ public class GameOfLifeGrid implements CellGrid {
   			tableroNueva[c][r] = new Celda( c, r );
         }
     this.tablero = tableroNueva;
+    this.tableroActualizado = tablero;
     this.celdasColumnas = celdasColumnasNew;
     this.celdasFilas = celdasFilasNew;
     this.divisionGrillaThreads();
@@ -109,19 +107,22 @@ public class GameOfLifeGrid implements CellGrid {
 	  List<Tarea> tareasNuevas= new ArrayList<Tarea>();
 	  int columnaInicio = 0;
 	  int filaInicio = 0;
-	  int celdasParaThreads;
-	  for(int i = 0;i > this.threadPool.getCantidadDeWorkers();i++) {
+	  int celdasParaThreads = 0;
+	  for(int i = 0;i < this.threadPool.getCantidadDeWorkers();i++) {
 		  celdasParaThreads = (this.cantidadDeCeldas()/(this.threadPool.getCantidadDeWorkers()));
-		  if(i > (cantidadDeCeldas()%this.cantidadDeCeldas())) {
+		  if(i < (cantidadDeCeldas()%this.threadPool.getCantidadDeWorkers())) {
 			  celdasParaThreads++;
 		  }
+		  System.out.println("resultado da "+celdasParaThreads);
 		  tareasNuevas.add(new Tarea(columnaInicio,filaInicio,celdasParaThreads,this));
-		  while(celdasParaThreads >= celdasColumnas) {
+		  while(celdasParaThreads > celdasColumnas) {
 			  filaInicio++;
 			  celdasParaThreads =- celdasColumnas;
 		  }
 		  columnaInicio = celdasParaThreads;
 	  }
+	  this.listaDeTareas = tareasNuevas;
+	  System.out.println("cantidad De Tareas "+listaDeTareas.size());
   }
   
   

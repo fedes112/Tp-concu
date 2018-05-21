@@ -14,15 +14,19 @@ public class ThreadPool {
 		return this.cantidadDeWorkers;
 	}
 	public void startWorkers(int worker) {
+		Worker var;
 		for (int i = 0; i < worker; i++) {			
-			new Worker(this.buff,this.buffDeFin).start();
+			var = new Worker(this.buff,this.buffDeFin);
+			var.start();
 		}
 		this.cantidadDeWorkers += worker;
+		System.out.println("Workers"+cantidadDeWorkers);
 	}
 	public void matarWorker(int worker){
 		for(int i = 0; i < worker; i++){
 			this.buff.poisonPill();
 		}
 		this.cantidadDeWorkers -= worker;
+		System.out.println("Workers"+cantidadDeWorkers);
 	}
 }

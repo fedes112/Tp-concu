@@ -12,12 +12,6 @@ public class Celda {
     this.row = (short)row;
   }
   
-  public void matar() {
-	  this.viva = false;
-  }
-  public void revivir() {
-	  this.viva = true;
-  }
   public boolean equals(Object o) {
     if (!(o instanceof Celda) )
       return false;
@@ -26,10 +20,6 @@ public class Celda {
 
   public int hashCode() {
     return HASHFACTOR*row+col;
-  }
-
-  public String toString() {
-    return "Cell at ("+col+", "+row+") with "+neighbour+" neighbour"+(neighbour==1?"":"s");
   }
 
   public boolean estado() {

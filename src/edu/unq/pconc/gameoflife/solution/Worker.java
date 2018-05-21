@@ -6,6 +6,7 @@ public class Worker extends Thread {
 	private BufferDeFin bufferfin;
 	private Tarea tarea;
 	private boolean activo = true;
+	private int vecinos = 0;
 
 	public Worker(BufferDeTareas buff,BufferDeFin buffDeFin) {
 		this.buffer = buff;
@@ -16,8 +17,10 @@ public class Worker extends Thread {
 		while(activo) {
 			this.tarea = buffer.tomarTarea();
 			if(this.tarea != null) {
+				System.out.println("Worker comienza un Trabajo");
 				this.realizarTarea();
-				this.bufferfin.dejarTarea(1);
+				System.out.println("Worker termino un Trabajo");
+				this.bufferfin.dejarTarea();
 			}else {
 				this.activo = false;
 			}
@@ -26,7 +29,15 @@ public class Worker extends Thread {
 
 	private void realizarTarea() {
 		for(int i = 0;i < this.tarea.getCantidadDeCeldas();i++) {
-			int vecinos = this.ObtenerVecinos(tarea.columnaActual(),tarea.filaActual());
+			vecinos = 0;
+			this.mirarVecino(tarea.columnaActual() , tarea.filaActual() +1);
+			this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() +1);
+			this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() );
+			this.mirarVecino(tarea.columnaActual() +1, tarea.filaActual() -1);
+			this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() +1);
+			this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() );
+			this.mirarVecino(tarea.columnaActual() -1, tarea.filaActual() -1);
+			this.mirarVecino(tarea.columnaActual() , tarea.filaActual() -1);
 			if ( vecinos != 3 && vecinos != 2 ) {
 				tarea.setCell( tarea.columnaActual(),tarea.filaActual(), false);
 		    }
@@ -36,20 +47,11 @@ public class Worker extends Thread {
 			this.tarea.siguienteCelda();
 		}
 	}
-
-	private int ObtenerVecinos(int columnaActual, int filaActual) {
-		int vecinos = 0;
-		this.tarea.agregarVecino(columnaActual,filaActual,columnaActual -1, filaActual +1);
-		this.tarea.agregarVecino(columnaActual -1, filaActual);
-		this.tarea.agregarVecino(columnaActual -1, filaActual -1);
-		this.tarea.agregarVecino(columnaActual +1, filaActual +1);
-		this.tarea.agregarVecino(columnaActual +1, filaActual);
-		this.tarea.agregarVecino(columnaActual +1, filaActual -1);
-		this.tarea.agregarVecino(columnaActual  , filaActual +1);
-		this.tarea.agregarVecino(columnaActual  , filaActual -1);
-		return vecinos;
-		if(columna >= 0 && fila >= 0 && columna <= this.gameOfLifeGrid.celdasEnColumna() && fila <= this.gameOfLifeGrid.celdasEnFila() )
-	}
 	
+	private void mirarVecino(int columnaActual, int filaActual) {
+		 if(this.tarea.getCell(columnaActual, filaActual)) {
+			 vecinos++;
+		 };
+	}
 	
 }
