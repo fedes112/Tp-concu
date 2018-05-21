@@ -78,6 +78,7 @@ public class GameOfLifeGrid implements CellGrid {
   public synchronized void setCell( int columna, int fila, boolean estado ) {
       tablero[columna][fila].setearEstado(estado);
   }
+  
  
   public int getGenerations() {
     return generations;
@@ -114,7 +115,7 @@ public class GameOfLifeGrid implements CellGrid {
 		  if(i > (cantidadDeCeldas()%this.cantidadDeCeldas())) {
 			  celdasParaThreads++;
 		  }
-		  tareasNuevas.add(new Tarea(columnaInicio,filaInicio,celdasParaThreads,tablero,this));
+		  tareasNuevas.add(new Tarea(columnaInicio,filaInicio,celdasParaThreads,this));
 		  while(celdasParaThreads >= celdasColumnas) {
 			  filaInicio++;
 			  celdasParaThreads =- celdasColumnas;
@@ -122,10 +123,7 @@ public class GameOfLifeGrid implements CellGrid {
 		  columnaInicio = celdasParaThreads;
 	  }
   }
-
-private int cantidadDeCeldas() {
-	return this.celdasFilas * this.celdasColumnas;
-}
+  
   
   public synchronized void setThreads(int threads) {
 	  if(threads >= this.threadPool.getCantidadDeWorkers()) {
@@ -140,9 +138,16 @@ private int cantidadDeCeldas() {
 	  return Math.abs(threads - this.threadPool.getCantidadDeWorkers());
   }
 
-public Integer celdasEnColumna() {
-	return celdasColumnas;
-}
+  private int cantidadDeCeldas() {
+	  return this.celdasFilas * this.celdasColumnas;
+  }
+  public Integer celdasEnColumna() {
+	  return celdasColumnas;
+  }
+
+  public int celdasEnFila() {
+	  return celdasFilas;
+  }
   
 }
 

@@ -3,7 +3,6 @@ package edu.unq.pconc.gameoflife.solution;
 public class Celda {
   public final short col;
   public final short row;
-  public byte neighbour; 
   public boolean viva = false;
 
   private final int HASHFACTOR = 5000; 
@@ -11,7 +10,6 @@ public class Celda {
   public Celda( int col, int row ) {
     this.col = (short)col;
     this.row = (short)row;
-    neighbour = 0;
   }
   
   public void matar() {

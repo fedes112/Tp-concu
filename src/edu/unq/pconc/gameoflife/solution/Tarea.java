@@ -4,15 +4,13 @@ public class Tarea {
 	private Integer columnaDeCeldaAModificar;
 	private Integer filaDeCeldaAModificar;
 	private Integer cantidadDeCeldasActualizar;
-	private Celda[][] tableroBase;
 	private GameOfLifeGrid gameOfLifeGrid;
 	
-	public Tarea(int _columnaInicio, int _filaInicio, int _cantidadDeCeldasActualizar, Celda[][] _tablero,GameOfLifeGrid _gameOfLifeGrid) {
+	public Tarea(int _columnaInicio, int _filaInicio, int _cantidadDeCeldasActualizar,GameOfLifeGrid _gameOfLifeGrid) {
 		this.columnaDeCeldaAModificar = _columnaInicio;
 		this.filaDeCeldaAModificar = _filaInicio;
 		this.cantidadDeCeldasActualizar = _cantidadDeCeldasActualizar;
 		this.gameOfLifeGrid = _gameOfLifeGrid;
-		this.tableroBase = _tablero;
 	}
 	
 	public int columnaActual() {
@@ -37,9 +35,11 @@ public class Tarea {
 	}
 	
 	public boolean getCell( int columna, int fila ) {
-	      return (tableroBase[columna][fila]).estado();  
-	 }
+	    return gameOfLifeGrid.getCell(columna, fila); 
+	}
+	
 	public void setCell( int columna, int fila ,boolean estado) {
 		this.gameOfLifeGrid.actualizarCelda(columna, fila, estado);
 	}
+
 }
