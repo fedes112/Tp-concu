@@ -1,31 +1,26 @@
 package edu.unq.pconc.gameoflife.solution;
 
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 
 import edu.unq.pconc.gameoflife.CellGrid;
 import edu.unq.pconc.gameoflife.shapes.Shape;
 
-/**
- * Contains the cellgrid, the current shape and the Game Of Life algorithm that changes it.
- *
- * @author Edwin Martin
- */
+
 public class GameOfLifeGrid implements CellGrid {
-  private int cellRows;
-  private int cellCols;
+  private int celdasFilas;
+  private int celdasColumnas;
   private int generations;
-  /**
-   * Contains the current, living shape.
-   * It's implemented as a hashtable. Tests showed this is 70% faster than Vector.
-   */
-  private Hashtable currentShape;
-  private Hashtable nextShape;
-  private Cell[][] grid;
-  
   private ThreadPool threadPool;
-  private Buffer buffer;
+  private BufferDeTareas buffer;
+  private BufferDeFin bufferMutex;
+  private List<Tarea> listaDeTareas;
+  private Celda[][] tableroActualizado;
+  private Celda[][] tablero;
+  
 
   /**
    * Contructs a GameOfLifeGrid.
@@ -34,48 +29,54 @@ public class GameOfLifeGrid implements CellGrid {
    * @param cellRows number of rows
    */
   public GameOfLifeGrid() {
-    this.cellCols = 0;
-    this.cellRows = 0;
-    this.buffer = new Buffer();
-    this.threadPool = new ThreadPool(this.buffer);
-    currentShape = new Hashtable();
-    nextShape = new Hashtable();
-
-    grid = new Cell[cellCols][cellRows];
-    for ( int c=0; c<cellCols; c++)
-      for ( int r=0; r<cellRows; r++ )
-        grid[c][r] = new Cell( c, r );
+    this.celdasColumnas = 0;
+    this.celdasFilas = 0;
+    this.buffer = new BufferDeTareas();
+    this.bufferMutex = new BufferDeFin();
+    this.threadPool = new ThreadPool(this.buffer,this.bufferMutex);
+    this.listaDeTareas = new ArrayList<Tarea>();
+    tableroActualizado = new Celda[celdasColumnas][celdasFilas];
+    tablero = new Celda[celdasColumnas][celdasFilas];
+    for ( int c=0; c<celdasColumnas; c++) {
+      for ( int r=0; r<celdasFilas; r++ ) {
+        tablero[c][r] = new Celda( c, r );
+        tableroActualizado[c][r] = new Celda( c, r );
+      }
+    }
   }
 
   public synchronized void clear() {
     generations = 0;
-    currentShape.clear();
-    nextShape.clear();
+    for ( int c=0; c<celdasColumnas; c++) {
+        for ( int r=0; r<celdasFilas; r++ ) {
+          tablero[c][r] = new Celda( c, r );
+        }
+      }
   }
   
   public synchronized void next() {
 	  
-    
+	  for(Tarea tarea : this.listaDeTareas) {
+		  this.buffer.dejarTarea(tarea);
+	  }
+	  
+	  for(int i = 0;i < this.threadPool.getCantidadDeWorkers();i++) {
+		  this.bufferMutex.tomarTarea();
+	  }
+	  
+	  this.tablero = this.tableroActualizado;
+  }
+  
+  public synchronized void actualizarCelda(int columna, int fila,boolean estado) {
+	  tableroActualizado[columna][fila].setearEstado(estado);
   }
 
-  public synchronized boolean getCell( int col, int row ) {
-    try {
-      return currentShape.containsKey(grid[col][row]);
-    } catch (ArrayIndexOutOfBoundsException e) {
-    }
-    return false;
+  public synchronized boolean getCell( int columna, int fila ) {
+      return (tablero[columna][fila]).estado();  
   }
 
-  public synchronized void setCell( int col, int row, boolean c ) {
-    try {
-      Cell cell = grid[col][row];
-      if ( c ) {
-        currentShape.put(cell, cell);
-      } else {
-        currentShape.remove(cell);
-      }
-    } catch (ArrayIndexOutOfBoundsException e) {
-    }
+  public synchronized void setCell( int columna, int fila, boolean estado ) {
+      tablero[columna][fila].setearEstado(estado);
   }
  
   public int getGenerations() {
@@ -83,56 +84,65 @@ public class GameOfLifeGrid implements CellGrid {
   }
  
   public Dimension getDimension() {
-    return new Dimension( cellCols, cellRows );
+    return new Dimension( celdasColumnas, celdasFilas );
   }
 
-  public synchronized void resize(int cellColsNew, int cellRowsNew) {
-    if ( cellCols==cellColsNew && cellRows==cellRowsNew )
-      return; // Not really a resize
-    // Create a new grid, reusing existing Cell's
-    Cell[][] gridNew = new Cell[cellColsNew][cellRowsNew];
-    for ( int c=0; c<cellColsNew; c++)
-      for ( int r=0; r<cellRowsNew; r++ )
-        if ( c < cellCols && r < cellRows )
-          gridNew[c][r] = grid[c][r];
-        else
-          gridNew[c][r] = new Cell( c, r );
-    // Copy existing shape to center of new shape
-    int colOffset = (cellColsNew-cellCols)/2;
-    int rowOffset = (cellRowsNew-cellRows)/2;
-    Cell cell;
-    Enumeration e;
-    nextShape.clear();
-    e = currentShape.keys();
-    while ( e.hasMoreElements() ) {
-      cell = (Cell) e.nextElement();
-      int colNew = cell.col + colOffset;
-      int rowNew = cell.row + rowOffset;
-      try {
-        nextShape.put( gridNew[colNew][rowNew], gridNew[colNew][rowNew] );
-      } catch ( ArrayIndexOutOfBoundsException ex ) {
-        // ignore
-      }
-    }
-    // Copy new grid and hashtable to working grid/hashtable
-    grid = gridNew;
-    currentShape.clear();
-    e = nextShape.keys();
-    while ( e.hasMoreElements() ) {
-      cell = (Cell) e.nextElement();
-      currentShape.put( cell, cell );
-    }
-    cellCols = cellColsNew;
-    cellRows = cellRowsNew;
+  public synchronized void resize(int celdasColumnasNew, int celdasFilasNew) {
+    if ( celdasColumnas==celdasColumnasNew && celdasFilas==celdasFilasNew )
+      return; 
+    Celda[][] tableroNueva = new Celda[celdasColumnasNew][celdasFilasNew];
+    for ( int c=0; c<celdasColumnasNew; c++)
+      for ( int r=0; r<celdasFilasNew; r++ )
+        if ( c < celdasColumnas && r < celdasFilas ) {
+        	tableroNueva[c][r] = this.tablero[c][r];
+  		}else {
+  			tableroNueva[c][r] = new Celda( c, r );
+        }
+    this.tablero = tableroNueva;
+    this.celdasColumnas = celdasColumnasNew;
+    this.celdasFilas = celdasFilasNew;
+    this.divisionGrillaThreads();
   }
   
-  public void setThreads(int threads) {
-	  if(this.threadPool.getCantidadDeWorkers() <= threads) {
-		  this.threadPool.startWorkers((threads - this.threadPool.getCantidadDeWorkers()));
-	  }else {
-		  this.threadPool.matarWorker((this.threadPool.getCantidadDeWorkers() - threads));
+  public void divisionGrillaThreads() {
+	  List<Tarea> tareasNuevas= new ArrayList<Tarea>();
+	  int columnaInicio = 0;
+	  int filaInicio = 0;
+	  int celdasParaThreads;
+	  for(int i = 0;i > this.threadPool.getCantidadDeWorkers();i++) {
+		  celdasParaThreads = (this.cantidadDeCeldas()/(this.threadPool.getCantidadDeWorkers()));
+		  if(i > (cantidadDeCeldas()%this.cantidadDeCeldas())) {
+			  celdasParaThreads++;
+		  }
+		  tareasNuevas.add(new Tarea(columnaInicio,filaInicio,celdasParaThreads,tablero,this));
+		  while(celdasParaThreads >= celdasColumnas) {
+			  filaInicio++;
+			  celdasParaThreads =- celdasColumnas;
+		  }
+		  columnaInicio = celdasParaThreads;
 	  }
   }
+
+private int cantidadDeCeldas() {
+	return this.celdasFilas * this.celdasColumnas;
+}
+  
+  public synchronized void setThreads(int threads) {
+	  if(threads >= this.threadPool.getCantidadDeWorkers()) {
+		  this.threadPool.startWorkers(restarThreads(threads));
+	  }else {
+		  this.threadPool.matarWorker(restarThreads(threads));
+	  }
+	  this.divisionGrillaThreads();
+  }
+  
+  private int restarThreads(int threads) {
+	  return Math.abs(threads - this.threadPool.getCantidadDeWorkers());
+  }
+
+public Integer celdasEnColumna() {
+	return celdasColumnas;
+}
   
 }
 

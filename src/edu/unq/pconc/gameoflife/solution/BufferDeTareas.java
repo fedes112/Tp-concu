@@ -3,7 +3,7 @@ package edu.unq.pconc.gameoflife.solution;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class Buffer {
+public class BufferDeTareas {
 
 	private Queue<Tarea> tareas = new LinkedList<>();
 	private int maximoDeTareas = 0;
