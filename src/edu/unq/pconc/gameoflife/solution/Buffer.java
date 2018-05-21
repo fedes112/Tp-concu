@@ -5,42 +5,39 @@ import java.util.Queue;
 
 public class Buffer {
 
-	private static final Queue<Tarea> buf = new LinkedList<>();
+	private Queue<Tarea> tareas = new LinkedList<>();
+	private int maximoDeTareas = 0;
+	//si el maximo es 0 o menor ignoramos que las tareas tengan un maximo
 
-	public void poisonPill() {}
-}
-/*
-public class Buffer {
-	private Object[] data = new Object[N + 1];
-	private int begin = 0, end = 0;
-
-	public synchronized void getCell(Object o) {
-		while (isFull())
-			wait();
-		data[begin] = o;
-		begin = next(begin);
+	public synchronized Tarea tomarTarea() {
+		while (this.tareas.isEmpty()){
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		notifyAll();
+		return this.tareas.poll();
+	}
+	
+	public synchronized void dejarTarea(Tarea tarea) {
+		if(this.maximoDeTareas <= 0) {
+			while(this.maximoDeTareas >= this.tareas.size()) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		this.tareas.add(tarea);
+		notifyAll();
+	}
+	
+	public synchronized void poisonPill() {
+		this.tareas.add(null);
 		notifyAll();
 	}
 
-	public synchronized Object pop() {
-		while (isEmpty())
-			wait();
-		Object result = data[end];
-		end = next(end);
-		notifyAll();
-		return result;
-	}
-
-	private boolean isEmpty() {
-		return begin == end;
-	}
-
-	private boolean isFull() {
-		return next(begin) == end;
-	}
-
-	private int next(int i) {
-		return (i + 1) % (N + 1);
-	}
 }
-*/
